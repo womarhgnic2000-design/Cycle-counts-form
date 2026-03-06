@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Count Request Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 24px;
+      color: #1f2937;
+    }
+ 
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    }
+ 
+    h1 {
+      margin-top: 0;
+      text-align: center;
+    }
+ 
+    .subtitle {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 24px;
+    }
+ 
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+ 
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+ 
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+ 
+    label {
+      font-weight: bold;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+ 
+    input, select, textarea {
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+ 
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+ 
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+ 
+    button {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+ 
+    .add-btn {
+      background: #2563eb;
+      color: white;
+    }
+ 
+    .export-btn {
+      background: #059669;
+      color: white;
+    }
+ 
+    .clear-btn {
+      background: #dc2626;
+      color: white;
+    }
+ 
+    button:hover {
+      opacity: 0.92;
+    }
+ 
+    .table-wrapper {
+      overflow-x: auto;
+    }
+ 
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1000px;
+    }
+ 
+    th, td {
+      border: 1px solid #d1d5db;
+      padding: 10px;
+      text-align: left;
+      font-size: 14px;
+      vertical-align: top;
+    }
+ 
+    th {
+      background: #e5e7eb;
+    }
+ 
+    .action-btn {
+      background: #ef4444;
+      color: white;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+ 
+    .empty-message {
+      text-align: center;
+      color: #6b7280;
+      margin-top: 12px;
+    }
+ 
+    .small-note {
+      margin-top: 14px;
+      color: #6b7280;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Count Request Tracker</h1>
+    <div class="subtitle">Enter count requests and export them to Excel-compatible CSV</div>
+ 
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="buyerName">Buyer Name</label>
+        <input type="text" id="buyerName" placeholder="Enter buyer name" />
+      </div>
+ 
+      <div class="form-group">
+        <label for="requestorName">Requested By</label>
+        <input type="text" id="requestorName" placeholder="Enter requestor name" />
+      </div>
+ 
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input type="date" id="date" />
+      </div>
+ 
+      <div class="form-group">
+        <label for="itemCode">Item / SKU</label>
+        <input type="text" id="itemCode" placeholder="Enter item code or SKU" />
+      </div>
+ 
+      <div class="form-group">
+        <label for="description">Item Description</label>
+        <input type="text" id="description" placeholder="Enter item description" />
+      </div>
+ 
+      <div class="form-group">
+        <label for="location">Location</label>
+        <input type="text" id="location" placeholder="Enter location" />
+      </div>
+ 
+      <div class="form-group">
+        <label for="expectedQty">Expected Qty</label>
+        <input type="number" id="expectedQty" placeholder="Enter expected quantity" />
+      </div>
+ 
+      <div class="form-group">
+        <label for="priority">Priority</label>
+        <select id="priority">
+          <option value="">Select priority</option>
+          <option value="Low">Low</option>
+          <option value="Normal">Normal</option>
+          <option value="High">High</option>
+          <option value="Urgent">Urgent</option>
+        </select>
+      </div>
+ 
+      <div class="form-group full">
+        <label for="reason">Reason for Request</label>
+        <textarea id="reason" placeholder="Explain why the count is needed"></textarea>
+      </div>
+    </div>
+ 
+    <div class="button-row">
+      <button class="add-btn" onclick="addRequest()">Add Request</button>
+      <button class="export-btn" onclick="exportCSV()">Export to Excel (CSV)</button>
+      <button class="clear-btn" onclick="clearAllRequests()">Clear All</button>
+    </div>
+ 
+    <div class="table-wrapper">
+      <table id="requestTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Buyer Name</th>
+            <th>Requested By</th>
+            <th>Item / SKU</th>
+            <th>Description</th>
+            <th>Location</th>
+            <th>Expected Qty</th>
+            <th>Priority</th>
+            <th>Reason</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="requestTableBody"></tbody>
+      </table>
+    </div>
+ 
+    <div class="empty-message" id="emptyMessage">No requests added yet.</div>
+ 
+    <div class="small-note">
+      Data stays in this browser while the page is open. Export the CSV before closing if you want to keep it.
+    </div>
+  </div>
+ 
+  <script>
+    const requests = [];
+ 
+    function escapeHtml(text) {
+      if (text === null || text === undefined) return "";
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+ 
+    function addRequest() {
+      const buyerName = document.getElementById("buyerName").value.trim();
+      const requestorName = document.getElementById("requestorName").value.trim();
+      const date = document.getElementById("date").value;
+      const itemCode = document.getElementById("itemCode").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const location = document.getElementById("location").value.trim();
+      const expectedQty = document.getElementById("expectedQty").value.trim();
+      const priority = document.getElementById("priority").value;
+      const reason = document.getElementById("reason").value.trim();
+ 
+      if (!buyerName || !itemCode) {
+        alert("Please enter at least Buyer Name and Item / SKU.");
+        return;
+      }
+ 
+      requests.push({
+        date,
+        buyerName,
+        requestorName,
+        itemCode,
+        description,
+        location,
+        expectedQty,
+        priority,
+        reason
+      });
+ 
+      renderTable();
+      clearForm();
+    }
+ 
+    function clearForm() {
+      document.getElementById("buyerName").value = "";
+      document.getElementById("requestorName").value = "";
+      document.getElementById("date").value = "";
+      document.getElementById("itemCode").value = "";
+      document.getElementById("description").value = "";
+      document.getElementById("location").value = "";
+      document.getElementById("expectedQty").value = "";
+      document.getElementById("priority").value = "";
+      document.getElementById("reason").value = "";
+    }
+ 
+    function renderTable() {
+      const tableBody = document.getElementById("requestTableBody");
+      const emptyMessage = document.getElementById("emptyMessage");
+ 
+      tableBody.innerHTML = "";
+ 
+      if (requests.length === 0) {
+        emptyMessage.style.display = "block";
+        return;
+      }
+ 
+      emptyMessage.style.display = "none";
+ 
+      requests.forEach((request, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${escapeHtml(request.date)}</td>
+          <td>${escapeHtml(request.buyerName)}</td>
+          <td>${escapeHtml(request.requestorName)}</td>
+          <td>${escapeHtml(request.itemCode)}</td>
+          <td>${escapeHtml(request.description)}</td>
+          <td>${escapeHtml(request.location)}</td>
+          <td>${escapeHtml(request.expectedQty)}</td>
+          <td>${escapeHtml(request.priority)}</td>
+          <td>${escapeHtml(request.reason)}</td>
+          <td><button class="action-btn" onclick="deleteRequest(${index})">Delete</button></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+ 
+    function deleteRequest(index) {
+      requests.splice(index, 1);
+      renderTable();
+    }
+ 
+    function clearAllRequests() {
+      if (requests.length === 0) return;
+ 
+      const confirmed = confirm("Are you sure you want to delete all requests?");
+      if (!confirmed) return;
+ 
+      requests.length = 0;
+      renderTable();
+    }
+ 
+    function csvValue(value) {
+      const safe = value == null ? "" : String(value);
+      return `"${safe.replace(/"/g, '""')}"`;
+    }
+ 
+    function exportCSV() {
+      if (requests.length === 0) {
+        alert("No requests to export.");
+        return;
+      }
+ 
+      const headers = [
+        "Date",
+        "Buyer Name",
+        "Requested By",
+        "Item / SKU",
+        "Description",
+        "Location",
+        "Expected Qty",
+        "Priority",
+        "Reason"
+      ];
+ 
+      const rows = requests.map(r => [
+        r.date,
+        r.buyerName,
+        r.requestorName,
+        r.itemCode,
+        r.description,
+        r.location,
+        r.expectedQty,
+        r.priority,
+        r.reason
+      ]);
+ 
+      let csvContent = headers.map(csvValue).join(",") + "\n";
+      csvContent += rows.map(row => row.map(csvValue).join(",")).join("\n");
+ 
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+ 
+      link.setAttribute("href", url);
+      link.setAttribute("download", "count_requests.csv");
+      link.style.visibility = "hidden";
+ 
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
+ 

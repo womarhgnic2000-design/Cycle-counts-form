@@ -14,7 +14,7 @@
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1250px;
       margin: auto;
       background: #ffffff;
       padding: 24px;
@@ -106,7 +106,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1100px;
+      min-width: 1250px;
     }
 
     th, td {
@@ -156,14 +156,55 @@
       border: 1px solid #fca5a5;
     }
 
-    .saved-tag {
-      font-weight: bold;
-      color: #166534;
-    }
-
     .loading {
       color: #6b7280;
       font-style: italic;
+    }
+
+    .priority-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: bold;
+      font-size: 12px;
+      color: white;
+    }
+
+    .priority-low {
+      background: #6b7280;
+    }
+
+    .priority-normal {
+      background: #2563eb;
+    }
+
+    .priority-high {
+      background: #ea580c;
+    }
+
+    .priority-urgent {
+      background: #dc2626;
+    }
+
+    .status-open {
+      color: #1d4ed8;
+      font-weight: bold;
+    }
+
+    .status-counting {
+      color: #ea580c;
+      font-weight: bold;
+    }
+
+    .status-completed {
+      color: #15803d;
+      font-weight: bold;
+    }
+
+    .status-select {
+      min-width: 130px;
+      font-size: 13px;
+      padding: 6px 8px;
     }
   </style>
 </head>
@@ -176,8 +217,8 @@
 
     <div class="form-grid">
       <div class="form-group">
-        <label for="erd">ERD</label>
-        <select id="erd">
+        <label for="erp">ERP</label>
+        <select id="erp">
           <option value="">Select system</option>
           <option value="WMS">WMS</option>
           <option value="Deacom">Deacom</option>
@@ -242,7 +283,7 @@
         <thead>
           <tr>
             <th>Date</th>
-            <th>ERD</th>
+            <th>ERP</th>
             <th>Requested By</th>
             <th>Item / SKU</th>
             <th>Description</th>
@@ -251,11 +292,12 @@
             <th>Priority</th>
             <th>Reason</th>
             <th>Status</th>
+            <th>Update Status</th>
           </tr>
         </thead>
         <tbody id="requestTableBody">
           <tr>
-            <td colspan="10" class="loading">Loading requests...</td>
+            <td colspan="11" class="loading">Loading requests...</td>
           </tr>
         </tbody>
       </table>
@@ -293,7 +335,7 @@
     }
 
     function clearForm() {
-      document.getElementById("erd").value = "";
+      document.getElementById("erp").value = "";
       document.getElementById("requestorName").value = "";
       document.getElementById("date").value = "";
       document.getElementById("itemCode").value = "";
@@ -304,8 +346,36 @@
       document.getElementById("reason").value = "";
     }
 
+    function getPriorityClass(priority) {
+      switch ((priority || "").toLowerCase()) {
+        case "low":
+          return "priority-low";
+        case "normal":
+          return "priority-normal";
+        case "high":
+          return "priority-high";
+        case "urgent":
+          return "priority-urgent";
+        default:
+          return "priority-low";
+      }
+    }
+
+    function getStatusClass(status) {
+      switch ((status || "").toLowerCase()) {
+        case "open":
+          return "status-open";
+        case "counting":
+          return "status-counting";
+        case "completed":
+          return "status-completed";
+        default:
+          return "status-open";
+      }
+    }
+
     async function addRequest() {
-      const erd = document.getElementById("erd").value;
+      const erp = document.getElementById("erp").value;
       const requestorName = document.getElementById("requestorName").value.trim();
       const date = document.getElementById("date").value;
       const itemCode = document.getElementById("itemCode").value.trim();
@@ -315,13 +385,14 @@
       const priority = document.getElementById("priority").value;
       const reason = document.getElementById("reason").value.trim();
 
-      if (!erd || !itemCode) {
-        showStatus("Please enter at least ERD and Item / SKU.", "error");
+      if (!erp || !itemCode) {
+        showStatus("Please enter at least ERP and Item / SKU.", "error");
         return;
       }
 
       const formData = new URLSearchParams();
-      formData.append("erd", erd);
+      formData.append("action", "add");
+      formData.append("erp", erp);
       formData.append("requestorName", requestorName);
       formData.append("date", date);
       formData.append("itemCode", itemCode);
@@ -330,6 +401,7 @@
       formData.append("expectedQty", expectedQty);
       formData.append("priority", priority);
       formData.append("reason", reason);
+      formData.append("status", "Open");
 
       try {
         const response = await fetch(SCRIPT_URL, {
@@ -344,11 +416,37 @@
           clearForm();
           loadRequests();
         } else {
-          showStatus("Failed to submit request.", "error");
+          showStatus(result.error || "Failed to submit request.", "error");
         }
       } catch (error) {
         console.error(error);
         showStatus("Error submitting request.", "error");
+      }
+    }
+
+    async function updateStatus(rowIndex, status) {
+      const formData = new URLSearchParams();
+      formData.append("action", "updateStatus");
+      formData.append("rowIndex", rowIndex);
+      formData.append("status", status);
+
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          showStatus("Status updated successfully.", "success");
+          loadRequests();
+        } else {
+          showStatus(result.error || "Failed to update status.", "error");
+        }
+      } catch (error) {
+        console.error(error);
+        showStatus("Error updating status.", "error");
       }
     }
 
@@ -358,7 +456,7 @@
 
       tableBody.innerHTML = `
         <tr>
-          <td colspan="10" class="loading">Loading requests...</td>
+          <td colspan="11" class="loading">Loading requests...</td>
         </tr>
       `;
 
@@ -376,18 +474,28 @@
         emptyMessage.style.display = "none";
 
         requests.forEach((request) => {
+          const statusValue = request["Status"] || "Open";
+          const priorityValue = request["Priority"] || "";
+
           const row = document.createElement("tr");
           row.innerHTML = `
             <td>${escapeHtml(request["Date"] || "")}</td>
-            <td>${escapeHtml(request["ERD"] || "")}</td>
+            <td>${escapeHtml(request["ERP"] || "")}</td>
             <td>${escapeHtml(request["Requested By"] || "")}</td>
             <td>${escapeHtml(request["Item / SKU"] || "")}</td>
             <td>${escapeHtml(request["Description"] || "")}</td>
             <td>${escapeHtml(request["Location"] || "")}</td>
             <td>${escapeHtml(request["Expected Qty"] || "")}</td>
-            <td>${escapeHtml(request["Priority"] || "")}</td>
+            <td><span class="priority-badge ${getPriorityClass(priorityValue)}">${escapeHtml(priorityValue)}</span></td>
             <td>${escapeHtml(request["Reason"] || "")}</td>
-            <td><span class="saved-tag">Saved</span></td>
+            <td><span class="${getStatusClass(statusValue)}">${escapeHtml(statusValue)}</span></td>
+            <td>
+              <select class="status-select" onchange="updateStatus('${request.rowIndex}', this.value)">
+                <option value="Open" ${statusValue === "Open" ? "selected" : ""}>Open</option>
+                <option value="Counting" ${statusValue === "Counting" ? "selected" : ""}>Counting</option>
+                <option value="Completed" ${statusValue === "Completed" ? "selected" : ""}>Completed</option>
+              </select>
+            </td>
           `;
           tableBody.appendChild(row);
         });
@@ -403,10 +511,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-

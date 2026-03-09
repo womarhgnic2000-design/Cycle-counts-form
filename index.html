@@ -12,7 +12,7 @@
       padding: 24px;
       color: #1f2937;
     }
- 
+
     .container {
       max-width: 1200px;
       margin: auto;
@@ -21,60 +21,61 @@
       border-radius: 12px;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     }
- 
+
     h1 {
       margin-top: 0;
       text-align: center;
     }
- 
+
     .subtitle {
       text-align: center;
       color: #6b7280;
       margin-bottom: 24px;
     }
- 
+
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 14px;
       margin-bottom: 18px;
     }
- 
+
     .form-group {
       display: flex;
       flex-direction: column;
     }
- 
+
     .form-group.full {
       grid-column: 1 / -1;
     }
- 
+
     label {
       font-weight: bold;
       margin-bottom: 6px;
       font-size: 14px;
     }
- 
+
     input, select, textarea {
       padding: 10px;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
       font-size: 14px;
       box-sizing: border-box;
+      width: 100%;
     }
- 
+
     textarea {
       resize: vertical;
       min-height: 80px;
     }
- 
+
     .button-row {
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
       margin-bottom: 20px;
     }
- 
+
     button {
       padding: 12px 18px;
       border: none;
@@ -83,36 +84,31 @@
       font-weight: bold;
       cursor: pointer;
     }
- 
+
     .add-btn {
       background: #2563eb;
       color: white;
     }
- 
-    .export-btn {
+
+    .refresh-btn {
       background: #059669;
       color: white;
     }
- 
-    .clear-btn {
-      background: #dc2626;
-      color: white;
-    }
- 
+
     button:hover {
       opacity: 0.92;
     }
- 
+
     .table-wrapper {
       overflow-x: auto;
     }
- 
+
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1000px;
+      min-width: 1100px;
     }
- 
+
     th, td {
       border: 1px solid #d1d5db;
       padding: 10px;
@@ -120,73 +116,105 @@
       font-size: 14px;
       vertical-align: top;
     }
- 
+
     th {
       background: #e5e7eb;
     }
- 
-    .action-btn {
-      background: #ef4444;
-      color: white;
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-size: 12px;
-    }
- 
+
     .empty-message {
       text-align: center;
       color: #6b7280;
       margin-top: 12px;
     }
- 
+
     .small-note {
       margin-top: 14px;
       color: #6b7280;
       font-size: 13px;
+      text-align: center;
+    }
+
+    .status {
+      margin-bottom: 16px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .status.success {
+      display: block;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .status.error {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .saved-tag {
+      font-weight: bold;
+      color: #166534;
+    }
+
+    .loading {
+      color: #6b7280;
+      font-style: italic;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Count Request Tracker</h1>
-    <div class="subtitle">Enter count requests and export them to Excel-compatible CSV</div>
- 
+    <div class="subtitle">Submit count requests and share them across all users</div>
+
+    <div id="statusMessage" class="status"></div>
+
     <div class="form-grid">
       <div class="form-group">
-        <label for="ERP">ERP</label>
-        <input type="text" id="ERP" placeholder="Enter ERP" />
+        <label for="erd">ERD</label>
+        <select id="erd">
+          <option value="">Select system</option>
+          <option value="WMS">WMS</option>
+          <option value="Deacom">Deacom</option>
+          <option value="Fishbowl">Fishbowl</option>
+        </select>
       </div>
- 
+
       <div class="form-group">
         <label for="requestorName">Requested By</label>
         <input type="text" id="requestorName" placeholder="Enter requestor name" />
       </div>
- 
+
       <div class="form-group">
         <label for="date">Date</label>
         <input type="date" id="date" />
       </div>
- 
+
       <div class="form-group">
         <label for="itemCode">Item / SKU</label>
         <input type="text" id="itemCode" placeholder="Enter item code or SKU" />
       </div>
- 
+
       <div class="form-group">
         <label for="description">Item Description</label>
         <input type="text" id="description" placeholder="Enter item description" />
       </div>
- 
+
       <div class="form-group">
         <label for="location">Location</label>
         <input type="text" id="location" placeholder="Enter location" />
       </div>
- 
+
       <div class="form-group">
         <label for="expectedQty">Expected Qty</label>
         <input type="number" id="expectedQty" placeholder="Enter expected quantity" />
       </div>
- 
+
       <div class="form-group">
         <label for="priority">Priority</label>
         <select id="priority">
@@ -197,25 +225,24 @@
           <option value="Urgent">Urgent</option>
         </select>
       </div>
- 
+
       <div class="form-group full">
         <label for="reason">Reason for Request</label>
         <textarea id="reason" placeholder="Explain why the count is needed"></textarea>
       </div>
     </div>
- 
+
     <div class="button-row">
-      <button class="add-btn" onclick="addRequest()">Add Request</button>
-      <button class="export-btn" onclick="exportCSV()">Export to Excel (CSV)</button>
-      <button class="clear-btn" onclick="clearAllRequests()">Clear All</button>
+      <button class="add-btn" onclick="addRequest()">Submit Request</button>
+      <button class="refresh-btn" onclick="loadRequests()">Refresh Requests</button>
     </div>
- 
+
     <div class="table-wrapper">
       <table id="requestTable">
         <thead>
           <tr>
             <th>Date</th>
-            <th>Buyer Name</th>
+            <th>ERD</th>
             <th>Requested By</th>
             <th>Item / SKU</th>
             <th>Description</th>
@@ -223,23 +250,38 @@
             <th>Expected Qty</th>
             <th>Priority</th>
             <th>Reason</th>
-            <th>Action</th>
+            <th>Status</th>
           </tr>
         </thead>
-        <tbody id="requestTableBody"></tbody>
+        <tbody id="requestTableBody">
+          <tr>
+            <td colspan="10" class="loading">Loading requests...</td>
+          </tr>
+        </tbody>
       </table>
     </div>
- 
-    <div class="empty-message" id="emptyMessage">No requests added yet.</div>
- 
+
+    <div class="empty-message" id="emptyMessage" style="display: none;">No requests found.</div>
+
     <div class="small-note">
-      Data stays in this browser while the page is open. Export the CSV before closing if you want to keep it.
+      This page is connected to a shared Google Sheet. All users will see the same requests.
     </div>
   </div>
- 
+
   <script>
-    const requests = [];
- 
+    const SCRIPT_URL = "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+
+    function showStatus(message, type) {
+      const statusBox = document.getElementById("statusMessage");
+      statusBox.className = "status " + type;
+      statusBox.textContent = message;
+
+      setTimeout(() => {
+        statusBox.className = "status";
+        statusBox.textContent = "";
+      }, 4000);
+    }
+
     function escapeHtml(text) {
       if (text === null || text === undefined) return "";
       return String(text)
@@ -249,41 +291,9 @@
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
- 
-    function addRequest() {
-      const buyerName = document.getElementById("buyerName").value.trim();
-      const requestorName = document.getElementById("requestorName").value.trim();
-      const date = document.getElementById("date").value;
-      const itemCode = document.getElementById("itemCode").value.trim();
-      const description = document.getElementById("description").value.trim();
-      const location = document.getElementById("location").value.trim();
-      const expectedQty = document.getElementById("expectedQty").value.trim();
-      const priority = document.getElementById("priority").value;
-      const reason = document.getElementById("reason").value.trim();
- 
-      if (!buyerName || !itemCode) {
-        alert("Please enter at least Buyer Name and Item / SKU.");
-        return;
-      }
- 
-      requests.push({
-        date,
-        ERP,
-        requestorName,
-        itemCode,
-        description,
-        location,
-        expectedQty,
-        priority,
-        reason
-      });
- 
-      renderTable();
-      clearForm();
-    }
- 
+
     function clearForm() {
-      document.getElementById("buyerName").value = "";
+      document.getElementById("erd").value = "";
       document.getElementById("requestorName").value = "";
       document.getElementById("date").value = "";
       document.getElementById("itemCode").value = "";
@@ -293,106 +303,103 @@
       document.getElementById("priority").value = "";
       document.getElementById("reason").value = "";
     }
- 
-    function renderTable() {
+
+    async function addRequest() {
+      const erd = document.getElementById("erd").value;
+      const requestorName = document.getElementById("requestorName").value.trim();
+      const date = document.getElementById("date").value;
+      const itemCode = document.getElementById("itemCode").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const location = document.getElementById("location").value.trim();
+      const expectedQty = document.getElementById("expectedQty").value.trim();
+      const priority = document.getElementById("priority").value;
+      const reason = document.getElementById("reason").value.trim();
+
+      if (!erd || !itemCode) {
+        showStatus("Please enter at least ERD and Item / SKU.", "error");
+        return;
+      }
+
+      const formData = new URLSearchParams();
+      formData.append("erd", erd);
+      formData.append("requestorName", requestorName);
+      formData.append("date", date);
+      formData.append("itemCode", itemCode);
+      formData.append("description", description);
+      formData.append("location", location);
+      formData.append("expectedQty", expectedQty);
+      formData.append("priority", priority);
+      formData.append("reason", reason);
+
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          showStatus("Request submitted successfully.", "success");
+          clearForm();
+          loadRequests();
+        } else {
+          showStatus("Failed to submit request.", "error");
+        }
+      } catch (error) {
+        console.error(error);
+        showStatus("Error submitting request.", "error");
+      }
+    }
+
+    async function loadRequests() {
       const tableBody = document.getElementById("requestTableBody");
       const emptyMessage = document.getElementById("emptyMessage");
- 
-      tableBody.innerHTML = "";
- 
-      if (requests.length === 0) {
+
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="10" class="loading">Loading requests...</td>
+        </tr>
+      `;
+
+      try {
+        const response = await fetch(SCRIPT_URL);
+        const requests = await response.json();
+
+        tableBody.innerHTML = "";
+
+        if (!requests.length) {
+          emptyMessage.style.display = "block";
+          return;
+        }
+
+        emptyMessage.style.display = "none";
+
+        requests.forEach((request) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${escapeHtml(request["Date"] || "")}</td>
+            <td>${escapeHtml(request["ERD"] || "")}</td>
+            <td>${escapeHtml(request["Requested By"] || "")}</td>
+            <td>${escapeHtml(request["Item / SKU"] || "")}</td>
+            <td>${escapeHtml(request["Description"] || "")}</td>
+            <td>${escapeHtml(request["Location"] || "")}</td>
+            <td>${escapeHtml(request["Expected Qty"] || "")}</td>
+            <td>${escapeHtml(request["Priority"] || "")}</td>
+            <td>${escapeHtml(request["Reason"] || "")}</td>
+            <td><span class="saved-tag">Saved</span></td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error(error);
+        tableBody.innerHTML = "";
         emptyMessage.style.display = "block";
-        return;
+        emptyMessage.textContent = "Could not load requests. Check your Apps Script URL and permissions.";
       }
- 
-      emptyMessage.style.display = "none";
- 
-      requests.forEach((request, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${escapeHtml(request.date)}</td>
-          <td>${escapeHtml(request.buyerName)}</td>
-          <td>${escapeHtml(request.requestorName)}</td>
-          <td>${escapeHtml(request.itemCode)}</td>
-          <td>${escapeHtml(request.description)}</td>
-          <td>${escapeHtml(request.location)}</td>
-          <td>${escapeHtml(request.expectedQty)}</td>
-          <td>${escapeHtml(request.priority)}</td>
-          <td>${escapeHtml(request.reason)}</td>
-          <td><button class="action-btn" onclick="deleteRequest(${index})">Delete</button></td>
-        `;
-        tableBody.appendChild(row);
-      });
     }
- 
-    function deleteRequest(index) {
-      requests.splice(index, 1);
-      renderTable();
-    }
- 
-    function clearAllRequests() {
-      if (requests.length === 0) return;
- 
-      const confirmed = confirm("Are you sure you want to delete all requests?");
-      if (!confirmed) return;
- 
-      requests.length = 0;
-      renderTable();
-    }
- 
-    function csvValue(value) {
-      const safe = value == null ? "" : String(value);
-      return `"${safe.replace(/"/g, '""')}"`;
-    }
- 
-    function exportCSV() {
-      if (requests.length === 0) {
-        alert("No requests to export.");
-        return;
-      }
- 
-      const headers = [
-        "Date",
-        "ERP",
-        "Requested By",
-        "Item / SKU",
-        "Description",
-        "Location",
-        "Expected Qty",
-        "Priority",
-        "Reason"
-      ];
- 
-      const rows = requests.map(r => [
-        r.date,
-        r.ERP,
-        r.requestorName,
-        r.itemCode,
-        r.description,
-        r.location,
-        r.expectedQty,
-        r.priority,
-        r.reason
-      ]);
- 
-      let csvContent = headers.map(csvValue).join(",") + "\n";
-      csvContent += rows.map(row => row.map(csvValue).join(",")).join("\n");
- 
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
- 
-      link.setAttribute("href", url);
-      link.setAttribute("download", "count_requests.csv");
-      link.style.visibility = "hidden";
- 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+
+    window.onload = loadRequests;
   </script>
 </body>
 </html>
- 
-
-
